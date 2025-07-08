@@ -1,17 +1,7 @@
 package com.example.planthelper
 
+import androidx.room.*
 import android.content.Context
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Query
-import androidx.room.Insert
-import androidx.room.Update
-import androidx.room.Delete
-import androidx.room.OnConflictStrategy
-import androidx.room.Room
-import androidx.room.RoomDatabase
 
 @Entity(tableName = "planta")
 data class Planta(
@@ -75,21 +65,22 @@ interface AguaDao {
     version = 1,
     exportSchema = false
 )
+
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun aguaDao(): AguaDao
-    abstract fun luminosidadeDao(): LuminosidadeDao
     abstract fun plantaDao(): PlantaDao
+    abstract fun luminosidadeDao(): LuminosidadeDao
+    abstract fun aguaDao(): AguaDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room
-                    .databaseBuilder(context.applicationContext,
+                INSTANCE ?: Room.databaseBuilder(
+                        context.applicationContext,
                         AppDatabase::class.java,
-                        "plantcare.db")
-                    .build()
-                    .also { INSTANCE = it }
+                        "plantcare.db"
+                ).build()
+                .also { INSTANCE = it }
             }
     }
 }
