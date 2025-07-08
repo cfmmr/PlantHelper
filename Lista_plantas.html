@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="estilos.css" />
+  <title>Lista de Plantas</title>
+</head>
+<body>
+  <div class="botoes">
+    <a href="index.html" class="iconVoltar"></a>
+    <span onclick="abrirmenu()"><div class="icon"></div><div class="icon"></div><div class="icon"></div></span>
+    <div class="descricao"><h3>Início</h3><h3>Filtros</h3></div>
+  </div>
+ 
+  <div id="main">  
+    <h1>Cuidados - Plantas</h1>
+
+    <div class="box_sql">
+      <span onclick="sql_inserir()"><strong>Inserir</strong></span>
+    </div>
+
+    <table id="table" border="1">
+      <tr class="headers">
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>Toxicidade</th>
+        <th>Fertilização</th>
+        <th>Modo de Propagação</th>
+        <th>Nível de Manutenção</th>
+      </tr>
+      <tbody id="tabela_plantas"></tbody>
+    </table>
+  </div>
+
+  <script>
+  window.onload = dados_plantas;
+
+  // Função para buscar os dados da base de dados e filtros
+  async function dados_plantas() {
+    try {
+      const response = await fetch("/plantas");
+      const data = await response.json();
+      mostrarNomePlantas();
+      console.log("Todos os dados tabela plantas.");
+
+      const tableBody = document.getElementById("tabela_plantas");
+
+      tableBody.innerHTML = "";
+
+      data.forEach(plantas => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${plantas.ID_especie}</td>
+          <td>${plantas.Nome}</td>
+          <td>${plantas.Tipo}</td>
+          <td>${plantas.Toxicidade}</td>
+          <td>${plantas.Fertelizacao}</td>
+          <td>${plantas.Propagacao}</td>
+          <td>${plantas.Manutencao}</td>
+          <td><input type="button" class="del_btn" value="&times" onclick="deleteRow(this)"></td>
+          <td><input type="button" class="update_btn" value="Alterar" onclick="updatePlantas(this)"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    }
+  }
+
+  async function mostrarNomePlantas() {
+    try {
+      const response = await fetch("/plantasNomes");
+      const data = await response.json();
+      let dropNomes = document.getElementById("dropNomes");
+
+      dropNomes.innerHTML = "";
+
+      const Todas = document.createElement("option");
+      Todas.value = "todas";
+      Todas.text = "Todas";
+      dropNomes.appendChild(Todas);
+
+      data.forEach((plantas) => {
+        const option = document.createElement("option");
+        option.value = plantas.ID_especie;
+        option.text = plantas.Nome;
+        dropNomes.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Erro ao busccar dados:", error);
+    }  
+  }
+
+  async function procurar() {
+    try {
+      //Nome
+      let dropNomes = document.getElementById("dropNomes");
+      let ID_especie = dropNomes.value;
+      const response = await fetch(`/plantasProcurar?ID_especie=${ID_especie}`);
+      const data = await response.json();
+      fecharmenu();
+
+      console.log("Procurar por ID:",ID_especie);
+      
+      const tableBody = document.getElementById("tabela_plantas");
+
+      tableBody.innerHTML = "";
+
+      data.forEach(plantas => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${plantas.ID_especie}</td>
+          <td>${plantas.Nome}</td>
+          <td>${plantas.Tipo}</td>
+          <td>${plantas.Toxicidade}</td>
+          <td>${plantas.Fertelizacao}</td>
+          <td>${plantas.Propagacao}</td>
+          <td>${plantas.Manutencao}</td>
+          <td><input type="button" class="del_btn" value="&times" onclick="deleteRow(this)"></td>
+          <td><input type="button" class="update_btn" value="Alterar" onclick="updatePlantas(this)"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    }
+  }
+ 
+  async function filterPlantas() {
+    try {
+      //Tipo
+      const checkboxes1 = document.querySelectorAll('.menu input[name="Tipo"]:checked');
+      let Tipo = Array.from(checkboxes1).map((checkbox) => checkbox.value).join(",");
+      
+      //Toxicidade
+      const radio = document.querySelector('.menu input[name="Toxicidade"]:checked');
+      let Toxicidade = radio ? radio.value : "";
+
+      //Fertelização
+      const dropdown = document.querySelector('.menu select[name="Fertelizacao"]');
+      let Fertelizacao = dropdown ? dropdown.value : "";
+
+      //Propagação
+      const checkboxes2 = document.querySelectorAll('.menu input[name="Propagacao"]:checked');
+      let Propagacao = Array.from(checkboxes2).map((checkbox) => checkbox.value).join(",");
+
+      //Manutenção
+      const checkboxes3 = document.querySelectorAll('.menu input[name="Manutencao"]:checked');
+      let Manutencao = Array.from(checkboxes3).map((checkbox) => checkbox.value).join(",");
+
+      //console.log("Tipos selecionados:", Tipo);
+      const response = await fetch(`/plantas?Tipo=${Tipo}&Toxicidade=${Toxicidade}&Fertelizacao=${Fertelizacao}&Propagacao=${Propagacao}&Manutencao=${Manutencao}`);
+      const data = await response.json();
+      fecharmenu();
+
+      //Consulta dados recebidos
+      console.log("Dados recebidos após filtrar:",Tipo,Toxicidade,Fertelizacao,Propagacao,Manutencao);
+      
+      const tableBody = document.getElementById("tabela_plantas");
+
+      tableBody.innerHTML = "";
+
+      data.forEach(plantas => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${plantas.ID_especie}</td>
+          <td>${plantas.Nome}</td>
+          <td>${plantas.Tipo}</td>
+          <td>${plantas.Toxicidade}</td>
+          <td>${plantas.Fertelizacao}</td>
+          <td>${plantas.Propagacao}</td>
+          <td>${plantas.Manutencao}</td>
+          <td><input type="button" class="del_btn" value="&times" onclick="deleteRow(this)"></td>
+          <td><input type="button" class="update_btn" value="Alterar" onclick="updatePlantas(this)"></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    }
+  }
+
+  async function insertPlantas() {
+    try {
+      //Nome
+      const Nome = document.getElementById("Nome").value;
+      var Nomes = new Array();
+      var dropNomes = document.getElementById("dropNomes");
+      for (i=0; i<dropNomes.options.length; i++){Nomes[i] = dropNomes.options[i].text;}
+
+      if(Nomes.includes(Nome)|| Nome=="") {
+        document.getElementById("errorinsert").style.visibility="visible";
+        document.getElementById("Nome").style.border="solid 2px rgba(255, 0, 0)";
+        console.log("Campos em falta");
+        return response;
+      }
+        
+      //Tipo
+      const dropdown = document.querySelector('.sql select[name="Tipo"]');
+      let Tipo = dropdown.value;
+
+      //Toxicidade
+      const radio = document.querySelector('.sql input[name="Toxicidade"]:checked');
+      let Toxicidade = radio.value;
+
+      //Fertelização
+      const dropdown2 = document.querySelector('.sql select[name="Fertelizacao"]');
+      let Fertelizacao = dropdown2.value;
+
+      //Propagação
+      const dropdown3 = document.querySelector('.sql select[name="Propagacao"]');
+      let Propagacao = dropdown3.value;
+
+      //Manutenção
+      const dropdown4 = document.querySelector('.sql select[name="Manutencao"]');
+      let Manutencao = dropdown4.value;
+      
+      console.log("Dados selecionados:",Nome,Tipo,Toxicidade,Fertelizacao,Propagacao,Manutencao);
+
+      const response = await fetch('/inserirPlantas',{method: 'POST',headers: {'Content-Type': 'application/json',},
+        body: JSON.stringify({ Nome: Nome, Tipo: Tipo, Toxicidade: Toxicidade, Fertelizacao: Fertelizacao, Propagacao: Propagacao, Manutencao: Manutencao}),
+      });
+
+      const data = await response.json();
+      x_inserir();
+      dados_plantas();
+      document.querySelectorAll("tr:last-child td")[0].scrollIntoView({behavior:"smooth"});
+      
+      //Verificar
+      console.log("Dados inseridos:",Nome,Tipo,Toxicidade,Fertelizacao,Propagacao,Manutencao);
+      
+    } catch (error) {
+      console.error("Erro ao inserir os dados.", error);
+    } 
+  }
+
+  async function deleteRow(row) {
+    try {
+      var r = row.parentNode.parentNode.rowIndex;
+      const table = document.getElementById("table");
+      let ID_especie = table.rows[r].cells[0].innerText;
+      table.deleteRow(r);
+
+      const delete_id = await fetch(`/plantas/${ID_especie}`, {method: 'DELETE'});
+      const data = await response.json();
+      dados_plantas();
+      
+      console.log("Dados eliminados:",ID_especie);
+
+    } catch (error) {
+      console.error("Erro ao eliminar dados:", error);
+    }
+  }
+
+  async function updatePlantas(row) {
+  while(true){
+    try {
+      var r = row.parentNode.parentNode.rowIndex;
+      const table = document.getElementById("table");
+      let ID_especie = table.rows[r].cells[0].innerText;
+      let Nomeb4 = table.rows[r].cells[1].innerText;
+      let Tipob4 = table.rows[r].cells[2].innerText;
+      let Toxicidadeb4 = table.rows[r].cells[3].innerText;
+      let Fertelizacaob4 = table.rows[r].cells[4].innerText;
+      let Propagacaob4 = table.rows[r].cells[5].innerText;
+      let Manutencaob4 = table.rows[r].cells[6].innerText;
+
+      sql_alterar();
+      document.getElementById("nomeb4").innerHTML = Nomeb4;
+      document.getElementById("tipob4").innerHTML = Tipob4;
+      document.getElementById("toxicidadeb4").innerHTML = Toxicidadeb4;
+      document.getElementById("fertelizacaob4").innerHTML = Fertelizacaob4;
+      document.getElementById("propagacaob4").innerHTML = Propagacaob4;
+      document.getElementById("manutencaob4").innerHTML = Manutencaob4;
+
+      //Elimina a opção duplicada
+      delopcao("tipoup",Tipob4);
+      delopcao("toxicidadeup",Toxicidadeb4);
+      delopcao("fertelizacaoup",Fertelizacaob4);
+      delopcao("propagacaoup",Propagacaob4);
+      delopcao("manutencaoup",Manutencaob4);
+
+      function delopcao(selectId, text) {
+        const select = document.getElementById(selectId);
+        for (let i=0; i<select.options.length; i++) {
+          if (select.options[i].text === text) {
+            select.remove(i);
+            break;
+          }
+        }
+      }
+
+      //Pausa função até primir botão Alterar
+      await new Promise((resolve) => {
+        const btnupdate = document.getElementById("btnupdate");
+        btnupdate.addEventListener("click",() => {resolve();});
+      });
+                
+      //Nome
+      const Nome = document.getElementById("Nomeup").value;
+      var Nomes = new Array();
+      var dropNomes = document.getElementById("dropNomes");
+      for (i=0; i<dropNomes.options.length; i++){
+        if (dropNomes.options[i].value !== "todas"){
+        Nomes[i] = dropNomes.options[i].text;
+        }
+      }
+
+      if(Nomes.includes(Nome)) {
+        document.getElementById("errorupdate").style.visibility="visible";
+        document.getElementById("Nomeup").style.border="solid 2px rgba(255, 0, 0)";
+        console.log("Nome inválido");
+        continue;
+      }
+        
+      //Tipo
+      const dropdown = document.querySelector('#alterar select[name="Tipo"]');
+      let Tipo = dropdown ? dropdown.value : "";
+
+      //Toxicidade
+      const dropdown1 = document.querySelector('#alterar select[name="Toxicidade"]');
+      let Toxicidade = dropdown1 ? dropdown1.value : "";
+
+      //Fertelização
+      const dropdown2 = document.querySelector('#alterar select[name="Fertelizacao"]');
+      let Fertelizacao = dropdown2 ? dropdown2.value : "";
+
+      //Propagação
+      const dropdown3 = document.querySelector('#alterar select[name="Propagacao"]');
+      let Propagacao = dropdown3 ? dropdown3.value : "";
+
+      //Manutenção
+      const dropdown4 = document.querySelector('#alterar select[name="Manutencao"]');
+      let Manutencao = dropdown4 ? dropdown4.value : "";
+
+      if(Nome=="" && Tipo=="" && Toxicidade=="" && Fertelizacao=="" && Propagacao=="" && Manutencao==""){
+        document.getElementById("errorupdate").style.visibility="visible";
+        console.log("Nenhum dado para alterar");
+        continue;
+      }
+
+      const response = await fetch('/alterarPlantas',{method: 'POST',headers: {'Content-Type': 'application/json',},
+        body: JSON.stringify({ ID_especie, Nome, Tipo, Toxicidade, Fertelizacao, Propagacao, Manutencao}),
+      });
+
+      const data = await response.json();
+      location.reload();
+
+      console.log("Dados alterados:",Nome,Tipo,Toxicidade,Fertelizacao,Propagacao,Manutencao);
+    } catch (error) {
+      console.error("Erro ao alterar dados:", error);
+    }
+  }}
+
+  //Botões SQL's
+  function x_inserir() {document.getElementById("inserir").style.visibility="hidden";document.getElementById("cover").style.visibility="hidden";document.getElementById("errorinsert").style.visibility="hidden";document.getElementById("Nome").style.border=""}
+  function sql_inserir() {document.getElementById("inserir").style.visibility="visible";document.getElementById("cover").style.visibility="visible"}
+  function x_alterar() {document.getElementById("alterar").style.visibility="hidden";document.getElementById("cover").style.visibility="hidden";document.getElementById("errorupdate").style.visibility="hidden"}
+  function sql_alterar() {document.getElementById("alterar").style.visibility="visible";document.getElementById("cover").style.visibility="visible";}
+ 
+  //Menu lateral
+  function abrirmenu() {document.getElementById("menu").style.width = "fit-content";document.getElementById("main").style.marginLeft = "240px";document.getElementById("table").style.transform = "translate(-50%) translateX(140px)";}
+  function fecharmenu() {document.getElementById("menu").style.width = "0";document.getElementById("main").style.marginLeft = "0";document.getElementById("table").style.transform = "translate(-50%)"}
+  </script>
+
+  <div id="menu" class="menu">
+  <a href="javascript:void(0)" class="close" onclick="fecharmenu()">&times;</a>
+  <form>
+    <div class="filter_box">
+      <div class="filters" id="find">
+        <label for="procurar"><strong>Procurar Planta:</strong></label><br><br/>
+          <select id="dropNomes" name="ID_especie"></select><br/>
+        <button type="button" class="procurar" onclick="procurar()">Procurar</button><br>
+      </div>
+
+      <div id="filters" class="filters">
+      <label for="tipo"><strong>Tipo de planta:</strong></label><br/><br/>
+        <label><input type="checkbox" name="Tipo" value="ornamental"/>Ornamental</label><br/>
+        <label><input type="checkbox" name="Tipo" value="arbusto"/>Arbusto</label><br/>
+        <label><input type="checkbox" name="Tipo" value="feto" />Feto</label><br/>
+        <label><input type="checkbox" name="Tipo" value="erva" />Erva</label><br/>
+        <label><input type="checkbox" name="Tipo" value="cacto" />Cacto</label><br/>
+        <label><input type="checkbox" name="Tipo" value="suculenta"/>Suculenta</label>
+      </div>
+
+      <div class="filters">
+      <label for="toxicidade"><strong>Toxicidade:</strong></label><br/><br/>
+        <label><input type="radio" name="Toxicidade" value="ambos" checked/>Ambos</label><br/>
+        <label><input type="radio" name="Toxicidade" value="sim" />Tóxica</label><br/>
+        <label><input type="radio" name="Toxicidade" value="nao" />Não Tóxica</label><br/><br/><br/>
+
+      <label for="fertelizacao"><strong>Fertelização:</strong></label><br/><br/>
+        <select id="fertelizacao" name="Fertelizacao"><br/>
+          <option value="todas">Todas</option><br/>
+          <option value="anual">Anual</option><br/>
+          <option value="semestral">Semestral</option><br/>
+          <option value="trimestral">Trimestral</option><br/>
+          <option value="mensal">Mensal</option><br/>
+          <option value="quinzenal">Quinzenal</option><br/>
+          <option value="semanal">Semanal</option>
+        </select>
+      </div>
+
+      <div class="filters">
+      <label for="propagacao"><strong>Modo de Propagação:</strong></label><br/><br/>
+        <label><input type="checkbox" name="Propagacao" value="divisao da raiz"/>Divisão da Raíz</label><br/>
+        <label><input type="checkbox" name="Propagacao" value="corte da folha"/>Corte da Folha</label><br/>
+        <label><input type="checkbox" name="Propagacao" value="corte do caule"/>Corte do Caule</label>
+      </div>
+
+      <div class="filters">
+        <label for="manutencao"><strong>Nível de Manutenção:</strong></label><br/><br/>
+        <label><input type="checkbox" name="Manutencao" value="1" />Nível 1</label><br/>
+        <label><input type="checkbox" name="Manutencao" value="2" />Nível 2</label><br/>
+        <label><input type="checkbox" name="Manutencao" value="3" />Nível 3</label><br/>
+        <label><input type="checkbox" name="Manutencao" value="4" />Nível 4</label><br/>
+        <label><input type="checkbox" name="Manutencao" value="5" />Nível 5</label>
+      </div>
+
+      <button type="button" onclick="filterPlantas()">Atualizar</button>
+    </div>
+  </form>
+  </div>
+
+  <div id="cover"></div>
+  <div class="sql" id="inserir">
+    <a href="javascript:void(0)" class="close" onclick="x_inserir()">&times;</a>
+    <form>
+      <h4>Inserir</h4>
+      <strong>Nome: </strong>
+        <textarea id="Nome" value="Nome" placeholder="Nome da planta..."></textarea><br/><br/>
+
+      <strong>Tipo: </strong>
+        <select id="tipo" name="Tipo">
+          <option value="ornamental">Ornamental</option>
+          <option value="arbusto">Arbusto</option>
+          <option value="feto">Feto</option>
+          <option value="erva">Erva</option>
+          <option value="cacto">Cacto</option>
+          <option value="suculenta">Suculenta</option>
+        </select><br/><br/>
+
+      <strong>Toxicidade: </strong>
+        <label style="margin-left: 5px;"><input type="radio" name="Toxicidade" value="sim" checked/>Tóxica</label><br/>
+        <label style="margin-left: 92px;"><input type="radio" name="Toxicidade" value="nao"/>Não Tóxica</label><br/><br/>
+
+      <strong>Fertelização: </strong>
+        <select id="Fertelização" name="Fertelizacao">
+          <option value="anual">Anual</option>
+          <option value="semestral">Semestral</option>
+          <option value="trimestral">Trimestral</option>
+          <option value="mensal">Mensal</option>
+          <option value="quinzenal">Quinzenal</option>
+          <option value="semanal">Semanal</option>
+        </select><br/><br/>
+
+      <strong>Propagação: </strong>
+        <select id="Propagacao" name="Propagacao">
+          <option value="divisao da raiz">Divisao da raiz</option>
+          <option value="corte da folha">Corte da folha</option>
+          <option value="corte do caule">Corte do caule</option>
+        </select><br/><br/>
+
+      <strong>Manutenção: </strong>
+        <select id="Manutencao" name="Manutencao">
+          <option value="1">Nível 1</option>
+          <option value="2">Nível 2</option>
+          <option value="3">Nível 3</option>
+          <option value="4">Nível 4</option>
+          <option value="5">Nível 5</option>
+        </select><br/>
+
+      <p><div id="errorinsert">Nome Invlálido!</div></p>
+      <p><button type="button" onclick="insertPlantas()">Inserir</button></p>
+    </form>
+  </div>  
+  
+  <div class="sql" id="alterar">
+    <a href="javascript:void(0)" class="close" onclick="x_alterar()">&times;</a>
+    <br>
+      <h4>Alterar</h4>
+      <strong>Nome</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="nomeb4"></h5><br/>
+      <label style="margin-left: 53px;">Para:</label>
+        <textarea id="Nomeup" value="Nome" placeholder="Novo nome..."></textarea><br/><br/>
+
+      <strong>Tipo</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="tipob4"></h5></br>
+      <label style="margin-left: 42px;">Para:</label>
+        <select id="tipoup" name="Tipo">
+          <option value="">---</option>
+          <option value="ornamental">Ornamental</option>
+          <option value="arbusto">Arbusto</option>
+          <option value="feto">Feto</option>
+          <option value="erva">Erva</option>
+          <option value="cacto">Cacto</option>
+          <option value="suculenta">Suculenta</option>
+        </select><br/><br/>
+      
+      <strong>Toxicidade</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="toxicidadeb4"></h5></br>
+      <label style="margin-left: 89px;">Para:</label>
+        <select id="toxicidadeup" name="Toxicidade">
+          <option value="">---</option>
+          <option value="sim">Sim</option>
+          <option value="nao">Não</option>
+        </select><br/><br/>
+
+      <strong>Fertelização</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="fertelizacaob4"></h5></br>
+      <label style="margin-left: 98px;">Para:</label>
+        <select id="fertelizacaoup" name="Fertelizacao">
+          <option value="">---</option>
+          <option value="anual">Anual</option>
+          <option value="semestral">Semestral</option>
+          <option value="trimestral">Trimestral</option>
+          <option value="mensal">Mensal</option>
+          <option value="quinzenal">Quinzenal</option>
+          <option value="semanal">Semanal</option>
+        </select><br/><br/>
+
+      <strong>Propagação</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="propagacaob4"></h5></br>
+      <label style="margin-left: 97px;">Para:</label>
+        <select id="propagacaoup" name="Propagacao">
+          <option value="">---</option>
+          <option value="divisao da raiz">Divisão da Raíz</option>
+          <option value="corte da folha">Corte da Folha</option>
+          <option value="corte do caule">Corte do Caule</option>
+        </select><br/><br/>
+
+      <strong>Manutenção</strong>
+      <label style="margin-left: 6px;">De: </label><h5 id="manutencaob4"></h5></br>
+      <label style="margin-left: 98px;">Para:</label>
+        <select id="manutencaoup" name="Manutencao">
+          <option value="">---</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select><br/>
+
+      <p><div id="errorupdate">Nenhum dado alterado!</div></p>
+      <p><button type="button" id="btnupdate">Alterar</button></p>
+    </form>
+  </div>
+</body>
+</html>
