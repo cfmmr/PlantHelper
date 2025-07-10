@@ -22,15 +22,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val db = AppDatabase.getInstance(this)
         val viewModel = MainViewModel(db)
-
-        setContent {
-            MaterialTheme {
-                PlantApp(viewModel)
-            }
-        }
+        setContent { MaterialTheme { PlantApp(viewModel) } }
     }
 }
 
@@ -149,11 +143,11 @@ fun AddPlantDialog(
     onAddPlant: (Planta) -> Unit
 ) {
     var nome by remember { mutableStateOf("") }
-    var tipo by remember { mutableStateOf("Ornamental") }
-    var toxicidade by remember { mutableStateOf("Não") }
-    var fertilizacao by remember { mutableStateOf("Mensal") }
-    var propagacao by remember { mutableStateOf("Divisão da Raíz") }
-    var manutencao by remember { mutableStateOf("1") }
+    val tipo by remember { mutableStateOf("Ornamental") }
+    val toxicidade by remember { mutableStateOf("Não") }
+    val fertilizacao by remember { mutableStateOf("Mensal") }
+    val propagacao by remember { mutableStateOf("Divisão da Raíz") }
+    val manutencao by remember { mutableStateOf("1") }
 
     AlertDialog(
         onDismissRequest = onDismiss,

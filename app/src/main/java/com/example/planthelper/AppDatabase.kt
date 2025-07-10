@@ -16,7 +16,7 @@ data class Planta(
 @Dao
 interface PlantaDao {
     @Query("SELECT * FROM planta")
-    fun getAll(): List<Planta>
+    suspend fun getAll(): List<Planta>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(planta: Planta)
     @Update suspend fun update(planta: Planta)
@@ -35,7 +35,7 @@ data class Luminosidade(
 @Dao
 interface LuminosidadeDao {
     @Query("SELECT * FROM luminosidade")
-    fun getAll(): List<Luminosidade>
+    suspend fun getAll(): List<Luminosidade>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(lum: Luminosidade)
     @Update suspend fun update(lum: Luminosidade)
@@ -53,7 +53,7 @@ data class Agua(
 @Dao
 interface AguaDao {
     @Query("SELECT * FROM agua")
-    fun getAll(): List<Agua>
+    suspend fun getAll(): List<Agua>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(agua: Agua)
     @Update suspend fun update(agua: Agua)

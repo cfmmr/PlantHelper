@@ -4,19 +4,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.*
-import java.util.concurrent.LinkedBlockingQueue
 
 class MainViewModel(private val db: AppDatabase) : ViewModel() {
-    init { viewModelScope.launch { if (db.plantaDao().getAll().isEmpty()) { insert() } } }
-    init {
-        loadPlanta()
-        loadLuminosidade()
-        loadAgua()
-    }
-
     private val _plants = MutableStateFlow<List<Planta>>(emptyList())
     val plants: StateFlow<List<Planta>> = _plants
-    private fun loadPlanta() { viewModelScope.launch { _plants.value = db.plantaDao().getAll() } }
+    private val _luminosidades = MutableStateFlow<List<Luminosidade>>(emptyList())
+    val luminosidades: StateFlow<List<Luminosidade>> = _luminosidades
+    private val _aguas = MutableStateFlow<List<Agua>>(emptyList())
+    val aguas: StateFlow<List<Agua>> = _aguas
+
+    init {
+        viewModelScope.launch {
+            if (db.plantaDao().getAll().isEmpty()) { insert() }
+            loadPlanta()
+        }
+    }
+
+    private suspend fun loadPlanta() { _plants.value = db.plantaDao().getAll() }
     fun insertPlanta(planta: Planta) { viewModelScope.launch {
         db.plantaDao().insert(planta)
         loadPlanta()
@@ -30,9 +34,7 @@ class MainViewModel(private val db: AppDatabase) : ViewModel() {
         loadPlanta()
     }}
 
-    private val _luminosidades = MutableStateFlow<List<Luminosidade>>(emptyList())
-    val luminosidades: StateFlow<List<Luminosidade>> = _luminosidades
-    private fun loadLuminosidade() { viewModelScope.launch { _luminosidades.value = db.luminosidadeDao().getAll() } }
+    private suspend fun loadLuminosidade() { _luminosidades.value = db.luminosidadeDao().getAll() }
     fun insertLuminosidade(luminosidade: Luminosidade) { viewModelScope.launch {
         db.luminosidadeDao().insert(luminosidade)
         loadLuminosidade()
@@ -46,9 +48,7 @@ class MainViewModel(private val db: AppDatabase) : ViewModel() {
         loadLuminosidade()
     }}
 
-    private val _aguas = MutableStateFlow<List<Agua>>(emptyList())
-    val aguas: StateFlow<List<Agua>> = _aguas
-    private fun loadAgua() { viewModelScope.launch { _aguas.value = db.aguaDao().getAll() } }
+    private suspend fun loadAgua() { _aguas.value = db.aguaDao().getAll() }
     fun insertAgua(agua: Agua) { viewModelScope.launch {
         db.aguaDao().insert(agua)
         loadAgua()
